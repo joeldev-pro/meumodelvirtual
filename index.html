@@ -1,623 +1,80 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador AR - Realidade Aumentada</title>
-    <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.3.0/build/ar.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #2d1a6c, #1a6c5e);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            width: 100%;
-            max-width: 1200px;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-        
-        .highlight {
-            color: #7df9ff;
-            font-weight: bold;
-        }
-        
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            width: 100%;
-            max-width: 1200px;
-            justify-content: center;
-        }
-        
-        .ar-section {
-            flex: 1;
-            min-width: 300px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
-        
-        .controls-section {
-            flex: 1;
-            min-width: 300px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            text-align: center;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-        }
-        
-        #arView {
-            width: 100%;
-            height: 400px;
-            background: #111;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 15px;
-        }
-        
-        #arScene {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
-        }
-        
-        button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9rem;
-        }
-        
-        button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button.active {
-            background: rgba(125, 249, 255, 0.3);
-            box-shadow: 0 0 10px rgba(125, 249, 255, 0.5);
-        }
-        
-        .object-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .object-option {
-            padding: 15px 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .object-option:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px);
-        }
-        
-        .object-option.active {
-            background: rgba(125, 249, 255, 0.3);
-            box-shadow: 0 0 10px rgba(125, 249, 255, 0.5);
-        }
-        
-        .object-icon {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-        
-        .instructions {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 10px;
-            color: #7df9ff;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 5px;
-        }
-        
-        .marker-section {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-        }
-        
-        .marker-image {
-            max-width: 200px;
-            border-radius: 8px;
-            margin: 10px 0;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .status {
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-        
-        .status.ready {
-            background: rgba(76, 175, 80, 0.3);
-        }
-        
-        .status.waiting {
-            background: rgba(255, 193, 7, 0.3);
-        }
-        
-        .status.error {
-            background: rgba(244, 67, 54, 0.3);
-        }
-        
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 1.2rem;
-            display: none;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 10;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            #arView {
-                height: 300px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador AR de Blocos 3D</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    model-viewer {
+      width: 100%;
+      height: 90vh;
+      --poster-color: transparent;
+    }
+    #fileInput {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.9);
+      color: #000;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .ar-button {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4a6fa5;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      z-index: 10;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Visualizador <span class="highlight">AR</span> - Realidade Aumentada</h1>
-        <p class="subtitle">Visualize objetos 3D no seu ambiente usando a câmera do dispositivo</p>
-    </header>
-    
-    <div class="container">
-        <section class="ar-section">
-            <h2 class="section-title">Visualizador AR</h2>
-            
-            <div class="status waiting" id="arStatus">
-                ⏳ Clique em "Iniciar AR" para começar
-            </div>
-            
-            <div id="arView">
-                <div class="loading" id="loadingIndicator">
-                    <div>Carregando câmera e modelos...</div>
-                    <div style="font-size: 0.8rem; margin-top: 10px;" id="loadingProgress"></div>
-                </div>
-                <a-scene 
-                    id="arScene"
-                    embedded 
-                    arjs="sourceType: webcam; debugUIEnabled: false;"
-                    vr-mode-ui="enabled: false"
-                    renderer="logarithmicDepthBuffer: true;"
-                    style="width: 100%; height: 100%">
-                    
-                    <!-- Marcador Hiro -->
-                    <a-marker id="hiro-marker" type="pattern" url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.patt">
-                        <a-entity id="model-container" position="0 0 0" scale="0.05 0.05 0.05"></a-entity>
-                    </a-marker>
-                    
-                    <!-- Câmera -->
-                    <a-entity camera></a-entity>
-                </a-scene>
-            </div>
-            
-            <div class="controls">
-                <button id="startAR">
-                    <span>🚀</span> Iniciar AR
-                </button>
-                <button id="stopAR">
-                    <span>⏹️</span> Parar AR
-                </button>
-                <button id="changeModel">
-                    <span>🔄</span> Alterar Modelo
-                </button>
-                <button id="toggleAnimation">
-                    <span>🎬</span> Animação
-                </button>
-            </div>
-            
-            <div class="instructions">
-                <h3>Como usar:</h3>
-                <ol>
-                    <li>Clique em "Iniciar AR" para ativar a câmera</li>
-                    <li>Permita o acesso à câmera quando solicitado</li>
-                    <li>Escolha um modelo 3D na lista ao lado</li>
-                    <li>Apresente o marcador Hiro à câmera</li>
-                    <li>O modelo 3D aparecerá sobre o marcador</li>
-                </ol>
-            </div>
-        </section>
-        
-        <section class="controls-section">
-            <h2 class="section-title">Modelos 3D</h2>
-            
-            <div class="object-selector">
-                <div class="object-option active" data-model="cube">
-                    <div class="object-icon">⬛</div>
-                    <div>Cubo</div>
-                </div>
-                <div class="object-option" data-model="sphere">
-                    <div class="object-icon">🔵</div>
-                    <div>Esfera</div>
-                </div>
-                <div class="object-option" data-model="torus">
-                    <div class="object-icon">⭕</div>
-                    <div>Toro</div>
-                </div>
-                <div class="object-option" data-model="cone">
-                    <div class="object-icon">🔺</div>
-                    <div>Cone</div>
-                </div>
-                <div class="object-option" data-model="cylinder">
-                    <div class="object-icon">🛢️</div>
-                    <div>Cilindro</div>
-                </div>
-                <div class="object-option" data-model="monkey">
-                    <div class="object-icon">🐵</div>
-                    <div>Macaco</div>
-                </div>
-            </div>
-            
-            <div class="instructions">
-                <h3>Controles do Modelo:</h3>
-                <ul>
-                    <li><strong>Mover:</strong> Mova o marcador no espaço</li>
-                    <li><strong>Girar:</strong> Gire o marcador para rotacionar o modelo</li>
-                    <li><strong>Escala:</strong> Use os botões abaixo para ajustar o tamanho</li>
-                </ul>
-            </div>
-            
-            <div class="controls">
-                <button id="scaleUp">
-                    <span>➕</span> Aumentar
-                </button>
-                <button id="scaleDown">
-                    <span>➖</span> Reduzir
-                </button>
-                <button id="resetScale">
-                    <span>↺</span> Tamanho Padrão
-                </button>
-            </div>
-            
-            <div class="marker-section">
-                <h3>Marcador AR Necessário</h3>
-                <p>Use este marcador Hiro para visualizar os modelos:</p>
-                <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="Marcador Hiro" class="marker-image">
-                <p>Imprima ou exiba em outro dispositivo</p>
-            </div>
-        </section>
-    </div>
 
-    <script>
-        // Variáveis globais
-        let arActive = false;
-        let currentModel = 'cube';
-        let currentScale = 0.05;
-        let animationEnabled = false;
-        let animationId = null;
-        
-        // Elementos DOM
-        const arScene = document.getElementById('arScene');
-        const arStatus = document.getElementById('arStatus');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const modelContainer = document.getElementById('model-container');
-        
-        // Inicializar quando a página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-            // Inicializar com um modelo padrão
-            loadModel(currentModel);
-        });
-        
-        // Configurar ouvintes de eventos
-        function setupEventListeners() {
-            // Botões de controle AR
-            document.getElementById('startAR').addEventListener('click', startAR);
-            document.getElementById('stopAR').addEventListener('click', stopAR);
-            document.getElementById('changeModel').addEventListener('click', changeModel);
-            document.getElementById('toggleAnimation').addEventListener('click', toggleAnimation);
-            
-            // Botões de escala
-            document.getElementById('scaleUp').addEventListener('click', () => adjustScale(1.2));
-            document.getElementById('scaleDown').addEventListener('click', () => adjustScale(0.8));
-            document.getElementById('resetScale').addEventListener('click', resetScale);
-            
-            // Seleção de modelos
-            document.querySelectorAll('.object-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    // Atualizar seleção visual
-                    document.querySelectorAll('.object-option').forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // Carregar novo modelo
-                    const modelType = this.getAttribute('data-model');
-                    loadModel(modelType);
-                });
-            });
-        }
-        
-        // Iniciar experiência AR
-        function startAR() {
-            if (arActive) return;
-            
-            loadingIndicator.style.display = 'block';
-            arStatus.textContent = '⏳ Iniciando câmera...';
-            arStatus.className = 'status waiting';
-            
-            // Solicitar permissão de câmera
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    arActive = true;
-                    arStatus.textContent = '✅ AR Ativo - Mostre o marcador Hiro à câmera';
-                    arStatus.className = 'status ready';
-                    loadingIndicator.style.display = 'none';
-                    
-                    // A cena AR já está configurada no HTML
-                    console.log('AR iniciado com sucesso');
-                })
-                .catch(function(error) {
-                    console.error('Erro ao acessar a câmera:', error);
-                    arStatus.textContent = '❌ Erro ao acessar a câmera. Verifique as permissões.';
-                    arStatus.className = 'status error';
-                    loadingIndicator.style.display = 'none';
-                });
-        }
-        
-        // Parar experiência AR
-        function stopAR() {
-            if (!arActive) return;
-            
-            // Parar animação se estiver ativa
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
-            
-            // A cena AR será automaticamente limpa quando não estiver ativa
-            arActive = false;
-            arStatus.textContent = '⏳ AR parado. Clique em "Iniciar AR" para recomeçar.';
-            arStatus.className = 'status waiting';
-        }
-        
-        // Carregar modelo 3D
-        function loadModel(modelType) {
-            if (!modelContainer) return;
-            
-            // Limpar modelo atual
-            while (modelContainer.firstChild) {
-                modelContainer.removeChild(modelContainer.firstChild);
-            }
-            
-            currentModel = modelType;
-            
-            // Criar modelo baseado no tipo
-            let modelEntity;
-            
-            switch(modelType) {
-                case 'cube':
-                    modelEntity = document.createElement('a-box');
-                    modelEntity.setAttribute('color', '#4CC3D9');
-                    modelEntity.setAttribute('position', '0 0.5 0');
-                    modelEntity.setAttribute('rotation', '0 45 0');
-                    break;
-                    
-                case 'sphere':
-                    modelEntity = document.createElement('a-sphere');
-                    modelEntity.setAttribute('color', '#EF2D5E');
-                    modelEntity.setAttribute('position', '0 0.5 0');
-                    modelEntity.setAttribute('radius', '0.5');
-                    break;
-                    
-                case 'torus':
-                    modelEntity = document.createElement('a-torus');
-                    modelEntity.setAttribute('color', '#FFC65D');
-                    modelEntity.setAttribute('position', '0 0.5 0');
-                    modelEntity.setAttribute('radius', '0.4');
-                    modelEntity.setAttribute('radius-tubular', '0.1');
-                    break;
-                    
-                case 'cone':
-                    modelEntity = document.createElement('a-cone');
-                    modelEntity.setAttribute('color', '#7BC8A4');
-                    modelEntity.setAttribute('position', '0 0.5 0');
-                    modelEntity.setAttribute('radius-bottom', '0.4');
-                    modelEntity.setAttribute('height', '1');
-                    break;
-                    
-                case 'cylinder':
-                    modelEntity = document.createElement('a-cylinder');
-                    modelEntity.setAttribute('color', '#A4A4F7');
-                    modelEntity.setAttribute('position', '0 0.5 0');
-                    modelEntity.setAttribute('radius', '0.4');
-                    modelEntity.setAttribute('height', '1');
-                    break;
-                    
-                case 'monkey':
-                    // Modelo 3D externo (Suzanne, o macaco do Blender)
-                    modelEntity = document.createElement('a-entity');
-                    modelEntity.setAttribute('gltf-model', 'https://cdn.aframe.io/test-models/models/glTF-2.0/virtualcity/VC.gltf');
-                    modelEntity.setAttribute('position', '0 0 0');
-                    modelEntity.setAttribute('scale', '0.5 0.5 0.5');
-                    break;
-                    
-                default:
-                    modelEntity = document.createElement('a-box');
-                    modelEntity.setAttribute('color', '#4CC3D9');
-                    modelEntity.setAttribute('position', '0 0.5 0');
-            }
-            
-            // Adicionar animação se estiver ativada
-            if (animationEnabled && modelType !== 'monkey') {
-                modelEntity.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
-            }
-            
-            modelContainer.appendChild(modelEntity);
-            modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-            
-            console.log(`Modelo carregado: ${modelType}`);
-        }
-        
-        // Alterar modelo atual
-        function changeModel() {
-            const models = ['cube', 'sphere', 'torus', 'cone', 'cylinder', 'monkey'];
-            const currentIndex = models.indexOf(currentModel);
-            const nextIndex = (currentIndex + 1) % models.length;
-            const nextModel = models[nextIndex];
-            
-            // Atualizar seleção visual
-            document.querySelectorAll('.object-option').forEach(opt => {
-                opt.classList.remove('active');
-                if (opt.getAttribute('data-model') === nextModel) {
-                    opt.classList.add('active');
-                }
-            });
-            
-            loadModel(nextModel);
-        }
-        
-        // Alternar animação
-        function toggleAnimation() {
-            animationEnabled = !animationEnabled;
-            const button = document.getElementById('toggleAnimation');
-            
-            if (animationEnabled) {
-                button.innerHTML = '<span>🎬</span> Parar Animação';
-                button.classList.add('active');
-                
-                // Aplicar animação ao modelo atual
-                if (modelContainer.firstChild && currentModel !== 'monkey') {
-                    modelContainer.firstChild.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
-                }
-            } else {
-                button.innerHTML = '<span>🎬</span> Animação';
-                button.classList.remove('active');
-                
-                // Remover animação
-                if (modelContainer.firstChild) {
-                    modelContainer.firstChild.removeAttribute('animation');
-                }
-            }
-        }
-        
-        // Ajustar escala do modelo
-        function adjustScale(factor) {
-            currentScale *= factor;
-            modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-        }
-        
-        // Redefinir escala para o padrão
-        function resetScale() {
-            currentScale = 0.05;
-            modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-        }
-        
-        // Detectar quando o marcador é detectado
-        const marker = document.getElementById('hiro-marker');
-        if (marker) {
-            marker.addEventListener('markerFound', () => {
-                console.log('Marcador detectado!');
-                if (arStatus) {
-                    arStatus.textContent = '✅ Marcador detectado!';
-                }
-            });
-            
-            marker.addEventListener('markerLost', () => {
-                console.log('Marcador perdido');
-                if (arStatus) {
-                    arStatus.textContent = '✅ AR Ativo - Mostre o marcador Hiro à câmera';
-                }
-            });
-        }
-    </script>
+  <input type="file" id="fileInput" accept=".glb,.gltf">
+  
+  <model-viewer 
+    id="viewer"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    environment-image="neutral"
+    alt="Visualizador AR de Blocos 3D">
+  </model-viewer>
+
+  <script>
+    const viewer = document.getElementById('viewer');
+    const fileInput = document.getElementById('fileInput');
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      viewer.src = url;
+    });
+  </script>
+
 </body>
 </html>
