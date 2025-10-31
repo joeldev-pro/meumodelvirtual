@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador AR - Meus Modelos 3D</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <title>Visualizador AR - Realidade Aumentada</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.3.0/build/ar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
     <style>
@@ -139,87 +138,35 @@
             box-shadow: 0 0 10px rgba(125, 249, 255, 0.5);
         }
         
-        .file-upload {
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            border: 2px dashed rgba(255, 255, 255, 0.3);
+        .object-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
         }
         
-        .file-input-container {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-        
-        .file-input-container input[type=file] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .file-input-label {
-            display: block;
-            padding: 15px 20px;
+        .object-option {
+            padding: 15px 10px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
+            border-radius: 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
         }
         
-        .file-input-label:hover {
+        .object-option:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
         }
         
-        .uploaded-models {
-            margin-top: 20px;
-        }
-        
-        .model-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 10px;
-        }
-        
-        .model-item {
-            padding: 10px;
-            margin-bottom: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .model-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .model-item.active {
+        .object-option.active {
             background: rgba(125, 249, 255, 0.3);
+            box-shadow: 0 0 10px rgba(125, 249, 255, 0.5);
         }
         
-        .model-actions {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .model-actions button {
-            padding: 5px 8px;
-            font-size: 0.8rem;
+        .object-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
         }
         
         .instructions {
@@ -294,18 +241,6 @@
             z-index: 10;
         }
         
-        .scale-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .scale-controls button {
-            flex: 1;
-            text-align: center;
-            justify-content: center;
-        }
-        
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -319,8 +254,8 @@
 </head>
 <body>
     <header>
-        <h1>Visualizador <span class="highlight">AR</span> - Meus Modelos 3D</h1>
-        <p class="subtitle">Carregue e visualize seus próprios modelos 3D em Realidade Aumentada</p>
+        <h1>Visualizador <span class="highlight">AR</span> - Realidade Aumentada</h1>
+        <p class="subtitle">Visualize objetos 3D no seu ambiente usando a câmera do dispositivo</p>
     </header>
     
     <div class="container">
@@ -345,7 +280,7 @@
                     style="width: 100%; height: 100%">
                     
                     <!-- Marcador Hiro -->
-                    <a-marker id="hiro-marker" type="pattern" url="https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-pattern.png">
+                    <a-marker id="hiro-marker" type="pattern" url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.patt">
                         <a-entity id="model-container" position="0 0 0" scale="0.05 0.05 0.05"></a-entity>
                     </a-marker>
                     
@@ -361,12 +296,66 @@
                 <button id="stopAR">
                     <span>⏹️</span> Parar AR
                 </button>
+                <button id="changeModel">
+                    <span>🔄</span> Alterar Modelo
+                </button>
                 <button id="toggleAnimation">
                     <span>🎬</span> Animação
                 </button>
             </div>
             
-            <div class="scale-controls">
+            <div class="instructions">
+                <h3>Como usar:</h3>
+                <ol>
+                    <li>Clique em "Iniciar AR" para ativar a câmera</li>
+                    <li>Permita o acesso à câmera quando solicitado</li>
+                    <li>Escolha um modelo 3D na lista ao lado</li>
+                    <li>Apresente o marcador Hiro à câmera</li>
+                    <li>O modelo 3D aparecerá sobre o marcador</li>
+                </ol>
+            </div>
+        </section>
+        
+        <section class="controls-section">
+            <h2 class="section-title">Modelos 3D</h2>
+            
+            <div class="object-selector">
+                <div class="object-option active" data-model="cube">
+                    <div class="object-icon">⬛</div>
+                    <div>Cubo</div>
+                </div>
+                <div class="object-option" data-model="sphere">
+                    <div class="object-icon">🔵</div>
+                    <div>Esfera</div>
+                </div>
+                <div class="object-option" data-model="torus">
+                    <div class="object-icon">⭕</div>
+                    <div>Toro</div>
+                </div>
+                <div class="object-option" data-model="cone">
+                    <div class="object-icon">🔺</div>
+                    <div>Cone</div>
+                </div>
+                <div class="object-option" data-model="cylinder">
+                    <div class="object-icon">🛢️</div>
+                    <div>Cilindro</div>
+                </div>
+                <div class="object-option" data-model="monkey">
+                    <div class="object-icon">🐵</div>
+                    <div>Macaco</div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3>Controles do Modelo:</h3>
+                <ul>
+                    <li><strong>Mover:</strong> Mova o marcador no espaço</li>
+                    <li><strong>Girar:</strong> Gire o marcador para rotacionar o modelo</li>
+                    <li><strong>Escala:</strong> Use os botões abaixo para ajustar o tamanho</li>
+                </ul>
+            </div>
+            
+            <div class="controls">
                 <button id="scaleUp">
                     <span>➕</span> Aumentar
                 </button>
@@ -378,56 +367,10 @@
                 </button>
             </div>
             
-            <div class="instructions">
-                <h3>Como usar:</h3>
-                <ol>
-                    <li>Carregue seu modelo GLB/GLTF usando o botão de upload</li>
-                    <li>Clique em "Iniciar AR" para ativar a câmera</li>
-                    <li>Permita o acesso à câmera quando solicitado</li>
-                    <li>Apresente o marcador Hiro à câmera</li>
-                    <li>Seu modelo 3D aparecerá sobre o marcador</li>
-                </ol>
-            </div>
-        </section>
-        
-        <section class="controls-section">
-            <h2 class="section-title">Meus Modelos 3D</h2>
-            
-            <div class="file-upload">
-                <div class="file-input-container">
-                    <input type="file" id="modelUpload" accept=".glb,.gltf">
-                    <label for="modelUpload" class="file-input-label">
-                        <span>📁</span> Carregar Modelo GLB/GLTF
-                    </label>
-                </div>
-                <p style="text-align: center; margin-top: 10px; font-size: 0.8rem; opacity: 0.8;">
-                    Formatos suportados: GLB, GLTF
-                </p>
-            </div>
-            
-            <div class="uploaded-models">
-                <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Modelos Carregados</h3>
-                <div class="model-list" id="modelList">
-                    <div style="text-align: center; padding: 20px; opacity: 0.7;">
-                        Nenhum modelo carregado ainda
-                    </div>
-                </div>
-            </div>
-            
-            <div class="instructions">
-                <h3>Dicas para modelos:</h3>
-                <ul>
-                    <li>Modelos muito complexos podem ter performance reduzida</li>
-                    <li>Para melhores resultados, otimize seus modelos antes de carregar</li>
-                    <li>Formatos GLB são geralmente mais eficientes que GLTF</li>
-                    <li>Mantenha texturas em resolução adequada para dispositivos móveis</li>
-                </ul>
-            </div>
-            
             <div class="marker-section">
                 <h3>Marcador AR Necessário</h3>
-                <p>Use este marcador para visualizar seus modelos:</p>
-                <img src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-image.png" alt="Marcador T-Rex" class="marker-image">
+                <p>Use este marcador Hiro para visualizar os modelos:</p>
+                <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="Marcador Hiro" class="marker-image">
                 <p>Imprima ou exiba em outro dispositivo</p>
             </div>
         </section>
@@ -436,22 +379,22 @@
     <script>
         // Variáveis globais
         let arActive = false;
-        let currentModel = null;
+        let currentModel = 'cube';
         let currentScale = 0.05;
         let animationEnabled = false;
-        let uploadedModels = [];
+        let animationId = null;
         
         // Elementos DOM
         const arScene = document.getElementById('arScene');
         const arStatus = document.getElementById('arStatus');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const modelContainer = document.getElementById('model-container');
-        const modelList = document.getElementById('modelList');
         
         // Inicializar quando a página carregar
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
-            loadStoredModels();
+            // Inicializar com um modelo padrão
+            loadModel(currentModel);
         });
         
         // Configurar ouvintes de eventos
@@ -459,6 +402,7 @@
             // Botões de controle AR
             document.getElementById('startAR').addEventListener('click', startAR);
             document.getElementById('stopAR').addEventListener('click', stopAR);
+            document.getElementById('changeModel').addEventListener('click', changeModel);
             document.getElementById('toggleAnimation').addEventListener('click', toggleAnimation);
             
             // Botões de escala
@@ -466,8 +410,20 @@
             document.getElementById('scaleDown').addEventListener('click', () => adjustScale(0.8));
             document.getElementById('resetScale').addEventListener('click', resetScale);
             
-            // Upload de modelos
-            document.getElementById('modelUpload').addEventListener('change', handleModelUpload);
+            // Seleção de modelos
+            document.querySelectorAll('.object-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Atualizar seleção visual
+                    document.querySelectorAll('.object-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Carregar novo modelo
+                    const modelType = this.getAttribute('data-model');
+                    loadModel(modelType);
+                });
+            });
         }
         
         // Iniciar experiência AR
@@ -479,228 +435,134 @@
             arStatus.className = 'status waiting';
             
             // Solicitar permissão de câmera
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(stream) {
-                        arActive = true;
-                        arStatus.textContent = '✅ AR Ativo - Mostre o marcador à câmera';
-                        arStatus.className = 'status ready';
-                        loadingIndicator.style.display = 'none';
-                        
-                        console.log('AR iniciado com sucesso');
-                    })
-                    .catch(function(error) {
-                        console.error('Erro ao acessar a câmera:', error);
-                        arStatus.textContent = '❌ Erro ao acessar a câmera. Verifique as permissões.';
-                        arStatus.className = 'status error';
-                        loadingIndicator.style.display = 'none';
-                    });
-            } else {
-                arStatus.textContent = '❌ Seu navegador não suporta acesso à câmera.';
-                arStatus.className = 'status error';
-                loadingIndicator.style.display = 'none';
-            }
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    arActive = true;
+                    arStatus.textContent = '✅ AR Ativo - Mostre o marcador Hiro à câmera';
+                    arStatus.className = 'status ready';
+                    loadingIndicator.style.display = 'none';
+                    
+                    // A cena AR já está configurada no HTML
+                    console.log('AR iniciado com sucesso');
+                })
+                .catch(function(error) {
+                    console.error('Erro ao acessar a câmera:', error);
+                    arStatus.textContent = '❌ Erro ao acessar a câmera. Verifique as permissões.';
+                    arStatus.className = 'status error';
+                    loadingIndicator.style.display = 'none';
+                });
         }
         
         // Parar experiência AR
         function stopAR() {
             if (!arActive) return;
             
+            // Parar animação se estiver ativa
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            // A cena AR será automaticamente limpa quando não estiver ativa
             arActive = false;
             arStatus.textContent = '⏳ AR parado. Clique em "Iniciar AR" para recomeçar.';
             arStatus.className = 'status waiting';
         }
         
-        // Manipular upload de modelo
-        function handleModelUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Verificar se o arquivo é GLB/GLTF
-            if (!file.name.toLowerCase().endsWith('.glb') && !file.name.toLowerCase().endsWith('.gltf')) {
-                alert('Por favor, selecione um arquivo GLB ou GLTF.');
-                return;
-            }
-            
-            loadingIndicator.style.display = 'block';
-            document.getElementById('loadingProgress').textContent = 'Carregando modelo...';
-            
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const modelData = {
-                    id: Date.now().toString(),
-                    name: file.name,
-                    data: e.target.result,
-                    type: file.name.toLowerCase().endsWith('.glb') ? 'glb' : 'gltf'
-                };
-                
-                // Adicionar à lista de modelos
-                uploadedModels.push(modelData);
-                
-                // Salvar no localStorage
-                saveModelsToStorage();
-                
-                // Atualizar a lista de modelos
-                updateModelList();
-                
-                // Carregar o modelo
-                loadUploadedModel(modelData);
-                
-                loadingIndicator.style.display = 'none';
-                event.target.value = ''; // Resetar input
-            };
-            
-            reader.onerror = function() {
-                alert('Erro ao ler o arquivo. Tente novamente.');
-                loadingIndicator.style.display = 'none';
-            };
-            
-            reader.readAsDataURL(file);
-        }
-        
-        // Carregar modelo enviado
-        function loadUploadedModel(modelData) {
+        // Carregar modelo 3D
+        function loadModel(modelType) {
             if (!modelContainer) return;
             
             // Limpar modelo atual
-            clearModelContainer();
-            
-            // Criar entidade do modelo
-            const modelEntity = document.createElement('a-entity');
-            
-            if (modelData.type === 'glb') {
-                modelEntity.setAttribute('gltf-model', `url(${modelData.data})`);
-            } else {
-                modelEntity.setAttribute('gltf-model', `url(${modelData.data})`);
+            while (modelContainer.firstChild) {
+                modelContainer.removeChild(modelContainer.firstChild);
             }
             
-            modelEntity.setAttribute('position', '0 0 0');
-            modelEntity.setAttribute('scale', '1 1 1');
+            currentModel = modelType;
+            
+            // Criar modelo baseado no tipo
+            let modelEntity;
+            
+            switch(modelType) {
+                case 'cube':
+                    modelEntity = document.createElement('a-box');
+                    modelEntity.setAttribute('color', '#4CC3D9');
+                    modelEntity.setAttribute('position', '0 0.5 0');
+                    modelEntity.setAttribute('rotation', '0 45 0');
+                    break;
+                    
+                case 'sphere':
+                    modelEntity = document.createElement('a-sphere');
+                    modelEntity.setAttribute('color', '#EF2D5E');
+                    modelEntity.setAttribute('position', '0 0.5 0');
+                    modelEntity.setAttribute('radius', '0.5');
+                    break;
+                    
+                case 'torus':
+                    modelEntity = document.createElement('a-torus');
+                    modelEntity.setAttribute('color', '#FFC65D');
+                    modelEntity.setAttribute('position', '0 0.5 0');
+                    modelEntity.setAttribute('radius', '0.4');
+                    modelEntity.setAttribute('radius-tubular', '0.1');
+                    break;
+                    
+                case 'cone':
+                    modelEntity = document.createElement('a-cone');
+                    modelEntity.setAttribute('color', '#7BC8A4');
+                    modelEntity.setAttribute('position', '0 0.5 0');
+                    modelEntity.setAttribute('radius-bottom', '0.4');
+                    modelEntity.setAttribute('height', '1');
+                    break;
+                    
+                case 'cylinder':
+                    modelEntity = document.createElement('a-cylinder');
+                    modelEntity.setAttribute('color', '#A4A4F7');
+                    modelEntity.setAttribute('position', '0 0.5 0');
+                    modelEntity.setAttribute('radius', '0.4');
+                    modelEntity.setAttribute('height', '1');
+                    break;
+                    
+                case 'monkey':
+                    // Modelo 3D externo (Suzanne, o macaco do Blender)
+                    modelEntity = document.createElement('a-entity');
+                    modelEntity.setAttribute('gltf-model', 'https://cdn.aframe.io/test-models/models/glTF-2.0/virtualcity/VC.gltf');
+                    modelEntity.setAttribute('position', '0 0 0');
+                    modelEntity.setAttribute('scale', '0.5 0.5 0.5');
+                    break;
+                    
+                default:
+                    modelEntity = document.createElement('a-box');
+                    modelEntity.setAttribute('color', '#4CC3D9');
+                    modelEntity.setAttribute('position', '0 0.5 0');
+            }
             
             // Adicionar animação se estiver ativada
-            if (animationEnabled) {
+            if (animationEnabled && modelType !== 'monkey') {
                 modelEntity.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
             }
             
             modelContainer.appendChild(modelEntity);
-            currentModel = modelData.id;
-            
-            // Ajustar escala
             modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
             
-            console.log(`Modelo carregado: ${modelData.name}`);
+            console.log(`Modelo carregado: ${modelType}`);
         }
         
-        // Limpar container de modelo
-        function clearModelContainer() {
-            if (!modelContainer) return;
+        // Alterar modelo atual
+        function changeModel() {
+            const models = ['cube', 'sphere', 'torus', 'cone', 'cylinder', 'monkey'];
+            const currentIndex = models.indexOf(currentModel);
+            const nextIndex = (currentIndex + 1) % models.length;
+            const nextModel = models[nextIndex];
             
-            while (modelContainer.firstChild) {
-                modelContainer.removeChild(modelContainer.firstChild);
-            }
-        }
-        
-        // Atualizar lista de modelos na interface
-        function updateModelList() {
-            if (!modelList) return;
-            
-            modelList.innerHTML = '';
-            
-            if (uploadedModels.length === 0) {
-                modelList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">Nenhum modelo carregado ainda</div>';
-                return;
-            }
-            
-            uploadedModels.forEach(model => {
-                const modelItem = document.createElement('div');
-                modelItem.className = `model-item ${currentModel === model.id ? 'active' : ''}`;
-                modelItem.innerHTML = `
-                    <span>${model.name}</span>
-                    <div class="model-actions">
-                        <button class="load-model" data-id="${model.id}">Carregar</button>
-                        <button class="delete-model" data-id="${model.id}">🗑️</button>
-                    </div>
-                `;
-                
-                modelList.appendChild(modelItem);
-            });
-            
-            // Adicionar eventos aos botões
-            document.querySelectorAll('.load-model').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const modelId = this.getAttribute('data-id');
-                    loadModelById(modelId);
-                });
-            });
-            
-            document.querySelectorAll('.delete-model').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const modelId = this.getAttribute('data-id');
-                    deleteModelById(modelId);
-                });
-            });
-        }
-        
-        // Carregar modelo por ID
-        function loadModelById(modelId) {
-            const model = uploadedModels.find(m => m.id === modelId);
-            if (model) {
-                loadUploadedModel(model);
-                
-                // Atualizar seleção visual
-                document.querySelectorAll('.model-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                document.querySelector(`.load-model[data-id="${modelId}"]`).closest('.model-item').classList.add('active');
-            }
-        }
-        
-        // Excluir modelo por ID
-        function deleteModelById(modelId) {
-            if (confirm('Tem certeza que deseja excluir este modelo?')) {
-                uploadedModels = uploadedModels.filter(m => m.id !== modelId);
-                
-                // Se o modelo excluído era o atual, limpar a cena
-                if (currentModel === modelId) {
-                    clearModelContainer();
-                    currentModel = null;
+            // Atualizar seleção visual
+            document.querySelectorAll('.object-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.getAttribute('data-model') === nextModel) {
+                    opt.classList.add('active');
                 }
-                
-                // Salvar alterações
-                saveModelsToStorage();
-                
-                // Atualizar lista
-                updateModelList();
-            }
-        }
-        
-        // Salvar modelos no localStorage
-        function saveModelsToStorage() {
-            try {
-                localStorage.setItem('arModels', JSON.stringify(uploadedModels));
-            } catch (e) {
-                console.error('Erro ao salvar modelos:', e);
-            }
-        }
-        
-        // Carregar modelos do localStorage
-        function loadStoredModels() {
-            try {
-                const storedModels = localStorage.getItem('arModels');
-                if (storedModels) {
-                    uploadedModels = JSON.parse(storedModels);
-                    updateModelList();
-                    
-                    // Carregar o último modelo usado, se existir
-                    if (uploadedModels.length > 0) {
-                        loadModelById(uploadedModels[uploadedModels.length - 1].id);
-                    }
-                }
-            } catch (e) {
-                console.error('Erro ao carregar modelos:', e);
-            }
+            });
+            
+            loadModel(nextModel);
         }
         
         // Alternar animação
@@ -713,7 +575,7 @@
                 button.classList.add('active');
                 
                 // Aplicar animação ao modelo atual
-                if (modelContainer.firstChild) {
+                if (modelContainer.firstChild && currentModel !== 'monkey') {
                     modelContainer.firstChild.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
                 }
             } else {
@@ -730,17 +592,13 @@
         // Ajustar escala do modelo
         function adjustScale(factor) {
             currentScale *= factor;
-            if (modelContainer) {
-                modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-            }
+            modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
         }
         
         // Redefinir escala para o padrão
         function resetScale() {
             currentScale = 0.05;
-            if (modelContainer) {
-                modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-            }
+            modelContainer.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
         }
         
         // Detectar quando o marcador é detectado
@@ -756,7 +614,7 @@
             marker.addEventListener('markerLost', () => {
                 console.log('Marcador perdido');
                 if (arStatus) {
-                    arStatus.textContent = '✅ AR Ativo - Mostre o marcador à câmera';
+                    arStatus.textContent = '✅ AR Ativo - Mostre o marcador Hiro à câmera';
                 }
             });
         }
