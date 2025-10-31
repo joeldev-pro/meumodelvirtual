@@ -3,76 +3,370 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualizador AR de Blocos 3D</title>
+  <title>Visualizador AR - Solução de Problemas</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: #1a1a1a;
       color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      padding: 20px;
     }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      text-align: center;
+    }
+    
+    h1 {
+      margin-bottom: 10px;
+      color: #4a6fa5;
+    }
+    
     model-viewer {
       width: 100%;
-      height: 90vh;
+      height: 50vh;
+      max-height: 500px;
       --poster-color: transparent;
+      margin: 20px auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
-    #fileInput {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255,255,255,0.9);
-      color: #000;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      z-index: 10;
+    
+    .controls {
+      margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
     }
-    .ar-button {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+    
+    .file-input-container {
+      margin: 15px 0;
+    }
+    
+    .file-input-label {
       background: #4a6fa5;
       color: white;
       padding: 10px 20px;
       border-radius: 6px;
-      border: none;
       cursor: pointer;
-      z-index: 10;
+      display: inline-block;
+      transition: background 0.3s;
+      font-weight: bold;
+    }
+    
+    .file-input-label:hover {
+      background: #3a5a8c;
+    }
+    
+    #fileInput {
+      display: none;
+    }
+    
+    .troubleshooting {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: left;
+      max-width: 800px;
+    }
+    
+    .troubleshooting h3 {
+      color: #e74c3c;
+      margin-top: 0;
+    }
+    
+    .status-message {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      display: none;
+      text-align: left;
+    }
+    
+    .status-message.success {
+      background: rgba(46, 204, 113, 0.2);
+      border: 1px solid #2ecc71;
+      display: block;
+    }
+    
+    .status-message.error {
+      background: rgba(231, 76, 60, 0.2);
+      border: 1px solid #e74c3c;
+      display: block;
+    }
+    
+    .status-message.info {
+      background: rgba(52, 152, 219, 0.2);
+      border: 1px solid #3498db;
+      display: block;
+    }
+    
+    .button {
+      background: #4a6fa5;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin: 5px;
+    }
+    
+    .button:hover {
+      background: #3a5a8c;
+    }
+    
+    .button:disabled {
+      background: #7f8c8d;
+      cursor: not-allowed;
+    }
+    
+    .ar-support {
+      margin: 15px 0;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    
+    .ar-supported {
+      background: rgba(46, 204, 113, 0.2);
+      border: 1px solid #2ecc71;
+    }
+    
+    .ar-not-supported {
+      background: rgba(231, 76, 60, 0.2);
+      border: 1px solid #e74c3c;
+    }
+    
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <input type="file" id="fileInput" accept=".glb,.gltf">
-  
-  <model-viewer 
-    id="viewer"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    camera-controls
-    auto-rotate
-    shadow-intensity="1"
-    environment-image="neutral"
-    alt="Visualizador AR de Blocos 3D">
-  </model-viewer>
+  <div class="container">
+    <h1>Visualizador AR - Solução de Problemas</h1>
+    
+    <div id="arSupport" class="ar-support"></div>
+    
+    <div class="file-input-container">
+      <label for="fileInput" class="file-input-label">
+        📁 Carregar Modelo 3D (.glb ou .gltf)
+      </label>
+      <input type="file" id="fileInput" accept=".glb,.gltf">
+    </div>
+    
+    <div id="statusMessage" class="status-message"></div>
+    
+    <model-viewer 
+      id="viewer"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      environment-image="neutral"
+      alt="Visualizador AR de modelos 3D"
+      ar-scale="fixed"
+      ar-placement="floor"
+      src="">
+      
+      <div class="button" slot="ar-button">
+        Ver em AR
+      </div>
+    </model-viewer>
+    
+    <div class="controls">
+      <button class="button" id="resetView">Resetar Vista</button>
+      <button class="button" id="toggleAutoRotate">Parar Rotação</button>
+      <button class="button" id="testModel">Carregar Modelo de Teste</button>
+    </div>
+    
+    <div class="troubleshooting">
+      <h3>🔧 Solução de Problemas - Se o AR não funciona:</h3>
+      
+      <h4>1. Verifique o formato do modelo:</h4>
+      <ul>
+        <li>Use apenas arquivos <strong>.glb</strong> ou <strong>.gltf</strong></li>
+        <li>Evite modelos muito complexos (mais de 50k polígonos)</li>
+        <li>Texturas devem estar incluídas ou referenciadas corretamente</li>
+      </ul>
+      
+      <h4>2. Verifique seu dispositivo:</h4>
+      <ul>
+        <li><strong>Android</strong>: Precisa ter ARCore instalado e suporte a WebXR</li>
+        <li><strong>iOS</strong>: Precisa ser iOS 12+ com suporte a ARKit</li>
+        <li>Use Chrome (Android) ou Safari (iOS)</li>
+      </ul>
+      
+      <h4>3. Verifique permissões:</h4>
+      <ul>
+        <li>Permita acesso à câmera quando solicitado</li>
+        <li>Certifique-se de estar em <strong>HTTPS</strong> ou <strong>localhost</strong></li>
+      </ul>
+      
+      <h4>4. Teste com um modelo simples:</h4>
+      <p>Use o botão "Carregar Modelo de Teste" para verificar se o problema é com seu modelo específico.</p>
+    </div>
+  </div>
 
   <script>
     const viewer = document.getElementById('viewer');
     const fileInput = document.getElementById('fileInput');
+    const statusMessage = document.getElementById('statusMessage');
+    const resetViewButton = document.getElementById('resetView');
+    const toggleAutoRotateButton = document.getElementById('toggleAutoRotate');
+    const testModelButton = document.getElementById('testModel');
+    const arSupportElement = document.getElementById('arSupport');
+    
+    let isAutoRotating = true;
+    let currentModelUrl = null;
 
+    // Verificar suporte a AR
+    function checkARSupport() {
+      const sceneViewerSupported = 'onclick' in HTMLAnchorElement.prototype;
+      const quickLookSupported = !!window.ApplePaySetupFeature;
+      const webXRSupported = navigator.xr && navigator.xr.isSessionSupported;
+      
+      if (sceneViewerSupported || quickLookSupported || webXRSupported) {
+        arSupportElement.innerHTML = '✅ Seu dispositivo suporta AR!';
+        arSupportElement.className = 'ar-support ar-supported';
+      } else {
+        arSupportElement.innerHTML = '❌ Seu dispositivo não suporta AR ou precisa de atualizações.';
+        arSupportElement.className = 'ar-support ar-not-supported';
+      }
+    }
+
+    // Função para mostrar mensagens de status
+    function showStatus(message, type = 'info') {
+      statusMessage.textContent = message;
+      statusMessage.className = 'status-message ' + type;
+    }
+
+    // Função para validar e carregar modelo
+    function loadModel(file) {
+      if (!file) return;
+      
+      // Verificar se é um arquivo .glb ou .gltf
+      const validExtensions = ['.glb', '.gltf'];
+      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+      
+      if (!validExtensions.includes(fileExtension)) {
+        showStatus('❌ Por favor, selecione um arquivo .glb ou .gltf válido.', 'error');
+        return;
+      }
+      
+      // Liberar URL anterior se existir
+      if (currentModelUrl) {
+        URL.revokeObjectURL(currentModelUrl);
+      }
+      
+      const url = URL.createObjectURL(file);
+      currentModelUrl = url;
+      
+      // Configurar listeners para eventos de carregamento
+      const onLoad = () => {
+        viewer.removeEventListener('load', onLoad);
+        viewer.removeEventListener('error', onError);
+        showStatus(`✅ Modelo "${file.name}" carregado com sucesso! Use o botão "Ver em AR" para visualizá-lo no seu ambiente.`, 'success');
+      };
+      
+      const onError = (error) => {
+        viewer.removeEventListener('load', onLoad);
+        viewer.removeEventListener('error', onError);
+        showStatus(`❌ Erro ao carregar o modelo "${file.name}". Verifique se o arquivo não está corrompido e tente usar um modelo mais simples.`, 'error');
+        console.error('Erro ao carregar modelo:', error);
+      };
+      
+      viewer.addEventListener('load', onLoad);
+      viewer.addEventListener('error', onError);
+      
+      // Tentar carregar o modelo
+      try {
+        viewer.src = url;
+        viewer.alt = `Modelo 3D: ${file.name}`;
+      } catch (error) {
+        showStatus(`❌ Erro ao processar o modelo: ${error.message}`, 'error');
+        console.error('Erro:', error);
+      }
+    }
+
+    // Carregar modelo de teste
+    function loadTestModel() {
+      showStatus('⏳ Carregando modelo de teste...', 'info');
+      
+      // Um modelo GLB simples (cubo)
+      const testModelUrl = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb';
+      
+      viewer.addEventListener('load', function onLoad() {
+        viewer.removeEventListener('load', onLoad);
+        showStatus('✅ Modelo de teste carregado! Agora tente o AR.', 'success');
+      });
+      
+      viewer.addEventListener('error', function onError() {
+        viewer.removeEventListener('error', onError);
+        showStatus('❌ Não foi possível carregar o modelo de teste. Verifique sua conexão.', 'error');
+      });
+      
+      viewer.src = testModelUrl;
+    }
+
+    // Evento para carregar arquivo
     fileInput.addEventListener('change', (event) => {
       const file = event.target.files[0];
-      if (!file) return;
+      loadModel(file);
+    });
 
-      const url = URL.createObjectURL(file);
-      viewer.src = url;
+    // Controle para resetar a vista
+    resetViewButton.addEventListener('click', () => {
+      viewer.cameraOrbit = '0deg 75deg 105%';
+      viewer.fieldOfView = '30deg';
+    });
+
+    // Controle para alternar rotação automática
+    toggleAutoRotateButton.addEventListener('click', () => {
+      isAutoRotating = !isAutoRotating;
+      viewer.autoRotate = isAutoRotating;
+      toggleAutoRotateButton.textContent = isAutoRotating ? 'Parar Rotação' : 'Iniciar Rotação';
+    });
+
+    // Botão para carregar modelo de teste
+    testModelButton.addEventListener('click', loadTestModel);
+
+    // Permitir arrastar e soltar arquivos
+    document.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    document.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        fileInput.files = files;
+        loadModel(file);
+      }
+    });
+
+    // Verificar suporte AR ao carregar a página
+    window.addEventListener('load', checkARSupport);
+
+    // Limpar recursos quando a página for fechada
+    window.addEventListener('beforeunload', () => {
+      if (currentModelUrl) {
+        URL.revokeObjectURL(currentModelUrl);
+      }
     });
   </script>
 
